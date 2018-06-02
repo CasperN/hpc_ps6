@@ -1,7 +1,7 @@
 CC = mpicc
-CFLAGS = -O3 -Wall -fopenmp -DOMP -DIDENTICAL
+CFLAGS = -O3 -Wall -fopenmp -DOMP
 
-N = 12
+N = 1000
 T = 600
 
 

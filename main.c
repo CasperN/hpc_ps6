@@ -4,6 +4,7 @@
 int main(int argc, char const *argv[]) {
     /* code */
     int n_par, n_iter, rank, nprocs;
+    double start, stop;
     char *savefile;
 
     if (argc != 3 && argc != 4) {
@@ -22,11 +23,16 @@ int main(int argc, char const *argv[]) {
     srand(1995 + rank);
     assert(n_par % nprocs == 0);
 
+    start = MPI_Wtime();
     if (nprocs == 1) {
         run_serial(TIME_STEP, n_par, n_iter, savefile);
     } else {
         run_parallel(TIME_STEP, n_par, n_iter, savefile, rank, nprocs);
     }
+    stop = MPI_Wtime();
+
+    if(rank == 0)
+        printf("Time: %.2lf seconds\n", stop - start );
 
     MPI_Finalize();
     return 0;
