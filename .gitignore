@@ -2,3 +2,5 @@ grav.o
 outfile.bin
 *.pdf
 nbody*
+*.o
+*.mp4
