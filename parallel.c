@@ -28,7 +28,7 @@ void run_parallel(double dt, int n_par, int n_iters, const char* file, int rank,
     guest_pos = malloc(sizeof(vec_t) * bodies.n_par);
     guest_mass = malloc(sizeof(double) * bodies.n_par);
 
-    MPI_File_open(MPI_COMM_WORLD, file,
+    MPI_File_open(MPI_COMM_WORLD, (char*) file,
             MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &f);
     pwrite_header(f, n_par, n_iters, rank, nprocs);
 

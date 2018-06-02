@@ -1,5 +1,8 @@
 #include "grav.h"
 
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
 
 vec_t add(vec_t x1, vec_t x2) {
     x1.x += x2.x;

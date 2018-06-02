@@ -23,6 +23,12 @@ int main(int argc, char const *argv[]) {
     srand(1995 + rank);
     assert(n_par % nprocs == 0);
 
+    #ifdef OMP
+    int m = omp_get_max_threads();
+    omp_set_num_threads(m);
+    printf("Rank %d setting num threads to maximum: %d\n", rank, m);
+    #endif
+
     start = MPI_Wtime();
     if (nprocs == 1) {
         run_serial(TIME_STEP, n_par, n_iter, savefile);
@@ -31,6 +37,7 @@ int main(int argc, char const *argv[]) {
     }
     stop = MPI_Wtime();
 
+    MPI_Barrier(MPI_COMM_WORLD);
     if(rank == 0)
         printf("Time: %.2lf seconds\n", stop - start );
 

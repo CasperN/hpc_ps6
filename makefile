@@ -1,15 +1,14 @@
 CC = mpicc
-CFLAGS = -O3 -Wall -fopenmp -DOMP
+CFLAGS = -O3 -std=c99 -Wall -fopenmp
 
 N = 1000
 T = 600
 
-
-info :
-	@ echo "todo info"
+nbody : main.c grav.o serial.o parallel.o
+	$(CC) $(CFLAGS) main.c grav.o serial.o parallel.o -o nbody
 
 clean :
-	rm nbody grav.o *.bin
+	rm -f nbody grav.o serial.o parallel.o *.bin
 
 show : simulation.mp4
 	open simulation.mp4
@@ -26,10 +25,6 @@ test : nbody
 	./nbody $N $T "b.bin"
 	python3 test_identical.py a.bin b.bin
 
-
-
-nbody : main.c grav.o serial.o parallel.o
-	$(CC) $(CFLAGS) main.c grav.o serial.o parallel.o -o nbody
 
 # Library
 
