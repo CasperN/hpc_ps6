@@ -27,10 +27,8 @@ double dot(vec_t x1, vec_t x2){
 // add force of every y to every x
 void accelerate(vec_t *vs, vec_t* xs, vec_t* ys, double *mass, double dt, int num){
 
-    #ifdef OMP
     #pragma omp parallel for default(none) schedule(static) \
         shared(xs, ys, vs, mass, dt, num)
-    #endif
     for(int i=0; i<num; i++){
         for(int j=0; j<num; j++){
             vec_t diff, dv;
@@ -47,10 +45,8 @@ void accelerate(vec_t *vs, vec_t* xs, vec_t* ys, double *mass, double dt, int nu
 
 
 void move(double dt, vec_t *xs, vec_t *vs, int num) {
-    #ifdef OMP
     #pragma omp parallel for default(none) schedule(static) \
         shared(xs, vs, dt, num)
-    #endif
     for(int i=0; i<num; i++){
         xs[i] = add(xs[i], scale(vs[i], dt));
     }
@@ -85,9 +81,7 @@ void init_3body(vec_t* pos, vec_t*vel, double*mass, int n){
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    #ifdef OMP
     #pragma omp parallel for schedule(static) shared(pos, vel, mass, n, nprocs)
-    #endif
     for(int i=0; i<n; i++){
         vec_t cluster;
 

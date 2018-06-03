@@ -4,9 +4,7 @@
 #include <time.h>
 #include <mpi.h>
 #include <assert.h>
-#ifdef OMP
 #include <omp.h>
-#endif
 
 
 #define GRAV 6.67408e-3

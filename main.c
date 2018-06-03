@@ -3,12 +3,14 @@
 
 int main(int argc, char const *argv[]) {
     /* code */
-    int n_par, n_iter, rank, nprocs;
+    int n_par, n_iter, rank, nprocs, threads;
     double start, stop;
     char *savefile;
 
-    if (argc != 3 && argc != 4) {
-        printf("Usage: ./nbody num_bodies num_time_steps [savefile]\n");
+    if (argc != 4 && argc != 5) {
+        printf("Usage: ./nbody num_bodies num_time_steps [num_threads] [savefile]\n");
+        printf("Note if you specify a `savefile` you have to also specify `num_threads`\n");
+        printf("`num_threads <= 0` means use max threads\n");
         exit(0);
     }
 
@@ -18,16 +20,18 @@ int main(int argc, char const *argv[]) {
 
     n_par    = atoi(argv[1]);
     n_iter   = atoi(argv[2]);
-    savefile = argc == 4 ? (char*) argv[3] : "outfile.bin";
+    threads  = atoi(argv[3]);
+    savefile = argc == 5 ? (char*) argv[4] : "outfile.bin";
 
+    if(n_par % nprocs != 0){
+        printf("Program assumes num_bodies is divisible by num mpi ranks\n");
+        MPI_Finalize();
+        exit(1);
+    }
     srand(1995 + rank);
-    assert(n_par % nprocs == 0);
-
-    #ifdef OMP
-    int m = omp_get_max_threads();
-    omp_set_num_threads(m);
-    printf("Rank %d setting num threads to maximum: %d\n", rank, m);
-    #endif
+    threads = threads < 1 ? omp_get_max_threads() : threads;
+    omp_set_num_threads(threads);
+    printf("Rank %d setting num threads to : %d\n", rank, threads);
 
     start = MPI_Wtime();
     if (nprocs == 1) {
