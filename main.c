@@ -23,15 +23,21 @@ int main(int argc, char const *argv[]) {
     threads  = atoi(argv[3]);
     savefile = argc == 5 ? (char*) argv[4] : "outfile.bin";
 
-    if(n_par % nprocs != 0){
-        printf("Program assumes num_bodies is divisible by num mpi ranks\n");
+    if (n_par % nprocs != 0) {
+        if (rank == 0)
+            printf("ERROR: num_bodies must be divisible by num mpi ranks.\n");
         MPI_Finalize();
         exit(1);
     }
-    srand(1995 + rank);
+
+    if (rank == 0)
+        printf("Running with %d ranks, %d bodies, %d time steps.\n",
+            nprocs, n_par, n_iter);
+    MPI_Barrier(MPI_COMM_WORLD);
+
     threads = threads < 1 ? omp_get_max_threads() : threads;
     omp_set_num_threads(threads);
-    printf("Rank %d setting num threads to : %d\n", rank, threads);
+    printf("\tRank %d using %d threads.\n", rank, threads);
 
     start = MPI_Wtime();
     if (nprocs == 1) {
@@ -41,10 +47,9 @@ int main(int argc, char const *argv[]) {
     }
     stop = MPI_Wtime();
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    if(rank == 0)
-        printf("Time: %.2lf seconds\n", stop - start );
-
+    if (rank == 0)
+        printf("Time: %.2lf seconds\n", stop - start);
+        
     MPI_Finalize();
     return 0;
 }
