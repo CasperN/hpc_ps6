@@ -8,6 +8,10 @@ TH = -1
 nbody : main.c grav.o serial.o parallel.o
 	$(CC) $(CFLAGS) main.c grav.o serial.o parallel.o -o nbody
 
+Readme.pdf : readme.md
+	pandoc readme.md -o Readme.pdf
+
+
 clean :
 	rm -f nbody grav.o serial.o parallel.o *.bin
 
