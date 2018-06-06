@@ -9,9 +9,10 @@ if a.shape != b.shape:
     print("shapes don't align {} != {}".format(a.shape, b.shape))
     exit(0)
 
-if (a!=b).any():
-    diff = np.where(a!=b)
-    print(f"Differs at indices: {diff}")
-    print(a[diff])
-    print(b[diff])
-    print((a-b)[diff])
+diff = np.abs(a - b) > 1e-10
+if diff.any():
+    diff_idx = np.where(diff)
+    print(f"Differs at indices: {diff_idx}")
+    print(a[diff_idx])
+    print(b[diff_idx])
+    print((a-b)[diff_idx])

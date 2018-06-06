@@ -21,14 +21,17 @@ typedef struct {
 } bodies_t;
 
 
-// Due to the force from `num` of `ys` with masses `masses` for `dt` time
-// update the velocities on `num` of `xs`
-void accelerate(vec_t *vs, vec_t* xs, vec_t* ys, double *mass, double dt, int num);
+// Due to the force from `ys` with masses `masses` for `dt` time update the
+// velocities of `xs`
+void accelerate(bodies_t *xs, vec_t* ys, double *mass, double dt);
+
+// Position the bodies
+void init_3body(bodies_t *xs);
 
 // Update positions due to velocities
-void move(double dt, vec_t *xs, vec_t *vs, int num);
+void move(bodies_t *xs, double dt);
 
-// Initialize / destroy an n body system struct
+// Initialize / destroy memory within an n body system struct
 void init_system(bodies_t *sys, int n_par);
 void destroy_system(bodies_t *sys);
 

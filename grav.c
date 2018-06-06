@@ -23,29 +23,31 @@ double dot(vec_t x1, vec_t x2){
     return x1.x * x2.x + x1.y * x2.y + x1.z * x2.z;
 }
 
+double rand_unif(double low, double high) {
+    return (double) rand() / RAND_MAX * (high - low) + low;
+}
 
 // add force of every y to every x
-void accelerate(vec_t *vs, vec_t* xs, vec_t* ys, double *mass, double dt, int num){
-    #pragma omp parallel for schedule(static) shared(xs, ys, vs, mass, dt, num)
-    for(int i=0; i<num; i++){
+void accelerate(bodies_t *xs, vec_t* ys, double *mass, double dt){
+    #pragma omp parallel for schedule(static) shared(xs, ys, mass, dt)
+    for(int i=0; i<xs->n_par; i++){
         vec_t acc = {0,0,0};
-        for(int j=0; j<num; j++){
+        for(int j=0; j<xs->n_par; j++){
             double dist;
             vec_t diff;
-            diff = add(ys[j], scale(xs[i], -1));
+            diff = add(ys[j], scale(xs->pos[i], -1));
             dist = sqrt(dot(diff, diff) + SOFTENING);
             acc  = add(acc, scale(diff, GRAV * mass[j] / (dist * dist * dist)));
         }
-        vs[i] = add(vs[i], scale(acc, dt));
+        xs->vel[i] = add(xs->vel[i], scale(acc, dt));
     }
 }
 
 
-void move(double dt, vec_t *xs, vec_t *vs, int num) {
-    #pragma omp parallel for default(none) schedule(static) \
-        shared(xs, vs, dt, num)
-    for(int i=0; i<num; i++){
-        xs[i] = add(xs[i], scale(vs[i], dt));
+void move(bodies_t *xs, double dt) {
+    #pragma omp parallel for default(none) schedule(static) shared(xs, dt)
+    for(int i=0; i<xs->n_par; i++){
+        xs->pos[i] = add(xs->pos[i], scale(xs->vel[i], dt));
     }
 }
 
@@ -53,8 +55,8 @@ void move(double dt, vec_t *xs, vec_t *vs, int num) {
 vec_t sample_direction(){
     double phi, cos_th, sin_th;
     vec_t v;
-    phi    = (double) rand_r() / (double) RAND_MAX * 2 * M_PI;
-    cos_th = (double) rand_r() / (double) RAND_MAX * 2 - 1;
+    phi    = rand_unif(0,2 * M_PI);
+    cos_th = rand_unif(-1, 1);
     sin_th = sqrt(1 - cos_th * cos_th);
 
     v.x = sin_th * cos(phi);
@@ -73,28 +75,27 @@ vec_t rotate_about_z(vec_t x){
 }
 
 
-void init_3body(vec_t* pos, vec_t*vel, double*mass, int n){
+void init_3body(bodies_t *xs){
 
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    #pragma omp parallel for schedule(static) shared(pos, vel, mass, n, nprocs)
-    for(int i=0; i<n; i++){
+    // #pragma omp parallel for schedule(static) shared(xs, nprocs)
+    for(int i=0; i<xs->n_par; i++){
+        int r = rand();
         vec_t cluster;
 
         // Just a little bit off perfect symmetry
-        if (i % 3 == 0)
+        if (r % 3 == 0)
             cluster = (vec_t) {-1 , -sqrt(3), 0.1};
-        else if (i % 3 == 1)
+        else if (r % 3 == 1)
             cluster = (vec_t) {-1 , +sqrt(3), 0};
         else
             cluster = (vec_t) { 2.1, 0, 0};
 
-        pos[i] = add(cluster, scale(sample_direction(),(double) rand_r()/RAND_MAX));
-        vel[i] = scale(rotate_about_z(pos[i]), 0.02);
-        mass[i] = ((double) rand_r() / (double) RAND_MAX) * 2
-            * EXPECTED_SYSTEM_MASS / n / nprocs;
-
+        xs->pos[i]  = add(cluster, scale(sample_direction(), rand_unif(0,1)));
+        xs->vel[i]  = scale(rotate_about_z(xs->pos[i]), 0.02);
+        xs->mass[i] = rand_unif(0, 2) * EXPECTED_SYSTEM_MASS / xs->n_par / nprocs;
     }
 }
 
@@ -119,18 +120,11 @@ void init_crosses(vec_t* pos, vec_t*vel, double*mass, int n_par){
 
 
 void init_system(bodies_t *sys, int n_par){
-
     sys->n_par = n_par;
     sys->pos  = malloc(n_par * sizeof(vec_t));
     sys->vel  = malloc(n_par * sizeof(vec_t));
     sys->mass = malloc(n_par * sizeof(double));
 
-
-    #ifdef IDENTICAL
-        init_crosses(sys->pos, sys->vel, sys->mass, sys->n_par);
-    #else
-        init_3body(sys->pos, sys->vel, sys->mass, sys->n_par);
-    #endif
 }
 
 void destroy_system(bodies_t *sys){

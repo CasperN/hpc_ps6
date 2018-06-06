@@ -22,6 +22,7 @@ int main(int argc, char const *argv[]) {
     n_iter   = atoi(argv[2]);
     threads  = atoi(argv[3]);
     savefile = argc == 5 ? (char*) argv[4] : "outfile.bin";
+    srand(1995);
 
     if (n_par % nprocs != 0) {
         if (rank == 0)
@@ -49,7 +50,7 @@ int main(int argc, char const *argv[]) {
 
     if (rank == 0)
         printf("Time: %.2lf seconds\n", stop - start);
-        
+
     MPI_Finalize();
     return 0;
 }

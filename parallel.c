@@ -18,13 +18,52 @@ void pwrite_positions(MPI_File f, bodies_t *bodies, int iter, int rank, int npro
 }
 
 
+void share_bodies(bodies_t *mine, int rank, int nprocs){
+    if(rank){
+        MPI_Recv(
+            mine->pos, mine->n_par * sizeof(vec_t), MPI_BYTE, 0, 0,
+            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(
+            mine->vel, mine->n_par * sizeof(vec_t), MPI_BYTE, 0, 1,
+            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(
+            mine->mass, mine->n_par, MPI_DOUBLE, 0, 2,
+            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        bodies_t theirs;
+        init_3body(mine);
+        init_system(&theirs, mine->n_par);
+        for(int i=1; i<nprocs; i++){
+            init_3body(&theirs);
+            MPI_Send(
+                theirs.pos, theirs.n_par * sizeof(vec_t), MPI_BYTE, i, 0,
+                MPI_COMM_WORLD);
+            MPI_Send(
+                theirs.vel, theirs.n_par * sizeof(vec_t), MPI_BYTE, i, 1,
+                MPI_COMM_WORLD);
+            MPI_Send(
+                theirs.mass, theirs.n_par, MPI_DOUBLE, i, 2,
+                MPI_COMM_WORLD);
+        }
+        destroy_system(&theirs);
+    }
+}
+
+
 void run_parallel(double dt, int n_par, int n_iters, const char* file, int rank, int nprocs){
     MPI_File f;
     bodies_t bodies;
     vec_t *guest_pos;
     double *guest_mass;
-
     init_system(&bodies, n_par / nprocs);
+
+    #ifdef IDENTICAL
+    share_bodies(&bodies, rank, nprocs);
+    #else
+    srand(rank + rand());
+    init_3body(&bodies);
+    #endif
+
     guest_pos = malloc(sizeof(vec_t) * bodies.n_par);
     guest_mass = malloc(sizeof(double) * bodies.n_par);
 
@@ -35,7 +74,7 @@ void run_parallel(double dt, int n_par, int n_iters, const char* file, int rank,
     for (int t=0; t<n_iters; t++) {
         pwrite_positions(f, &bodies, t, rank, nprocs);
         // Acceleration due to own particles
-        accelerate(bodies.vel, bodies.pos, bodies.pos, bodies.mass, dt, bodies.n_par);
+        accelerate(&bodies, bodies.pos, bodies.mass, dt);
 
         for(int i=1; i<nprocs; i++){
             // Acceleration due to neighbor i's particles
@@ -50,9 +89,9 @@ void run_parallel(double dt, int n_par, int n_iters, const char* file, int rank,
                 bodies.mass, bodies.n_par, MPI_DOUBLE, recvr, i,
                 guest_mass,  bodies.n_par, MPI_DOUBLE, sendr, i,
                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            accelerate(bodies.vel, bodies.pos, guest_pos, guest_mass, dt, bodies.n_par);
+            accelerate(&bodies, guest_pos, guest_mass, dt);
         }
-        move(dt, bodies.pos, bodies.vel, bodies.n_par);
+        move(&bodies, dt);
     }
 
     pwrite_positions(f, &bodies, n_iters, rank, nprocs);

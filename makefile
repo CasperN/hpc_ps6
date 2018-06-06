@@ -1,8 +1,8 @@
 CC = mpicc
-CFLAGS = -O3 -std=c99 -Wall -fopenmp
+CFLAGS = -O2 -std=c99 -Wall -fopenmp -DIDENTICAL
 
-N = 1000
-T = 600
+N = 128
+T = 10
 TH = -1
 
 nbody : main.c grav.o serial.o parallel.o
