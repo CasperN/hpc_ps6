@@ -26,19 +26,17 @@ double dot(vec_t x1, vec_t x2){
 
 // add force of every y to every x
 void accelerate(vec_t *vs, vec_t* xs, vec_t* ys, double *mass, double dt, int num){
-
-    #pragma omp parallel for default(none) schedule(static) \
-        shared(xs, ys, vs, mass, dt, num)
+    #pragma omp parallel for schedule(static) shared(xs, ys, vs, mass, dt, num)
     for(int i=0; i<num; i++){
-        vec_t dv = {0,0,0};
+        vec_t acc = {0,0,0};
         for(int j=0; j<num; j++){
             double dist;
             vec_t diff;
             diff = add(ys[j], scale(xs[i], -1));
             dist = sqrt(dot(diff, diff) + SOFTENING);
-            dv   = add(dv, scale(diff, GRAV * mass[j] / (dist * dist * dist)));
+            acc  = add(acc, scale(diff, GRAV * mass[j] / (dist * dist * dist)));
         }
-        vs[i] = add(vs[i], scale(dv, dt));
+        vs[i] = add(vs[i], scale(acc, dt));
     }
 }
 
@@ -55,8 +53,8 @@ void move(double dt, vec_t *xs, vec_t *vs, int num) {
 vec_t sample_direction(){
     double phi, cos_th, sin_th;
     vec_t v;
-    phi    = (double) rand() / (double) RAND_MAX * 2 * M_PI;
-    cos_th = (double) rand() / (double) RAND_MAX * 2 - 1;
+    phi    = (double) rand_r() / (double) RAND_MAX * 2 * M_PI;
+    cos_th = (double) rand_r() / (double) RAND_MAX * 2 - 1;
     sin_th = sqrt(1 - cos_th * cos_th);
 
     v.x = sin_th * cos(phi);
@@ -92,9 +90,9 @@ void init_3body(vec_t* pos, vec_t*vel, double*mass, int n){
         else
             cluster = (vec_t) { 2.1, 0, 0};
 
-        pos[i] = add(cluster, scale(sample_direction(),(double) rand()/RAND_MAX));
+        pos[i] = add(cluster, scale(sample_direction(),(double) rand_r()/RAND_MAX));
         vel[i] = scale(rotate_about_z(pos[i]), 0.02);
-        mass[i] = ((double) rand() / (double) RAND_MAX) * 2
+        mass[i] = ((double) rand_r() / (double) RAND_MAX) * 2
             * EXPECTED_SYSTEM_MASS / n / nprocs;
 
     }
