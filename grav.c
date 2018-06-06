@@ -30,16 +30,15 @@ void accelerate(vec_t *vs, vec_t* xs, vec_t* ys, double *mass, double dt, int nu
     #pragma omp parallel for default(none) schedule(static) \
         shared(xs, ys, vs, mass, dt, num)
     for(int i=0; i<num; i++){
+        vec_t dv = {0,0,0};
         for(int j=0; j<num; j++){
-            vec_t diff, dv;
-            double dist, acc;
-
+            double dist;
+            vec_t diff;
             diff = add(ys[j], scale(xs[i], -1));
             dist = sqrt(dot(diff, diff) + SOFTENING);
-            acc  = GRAV * mass[j] / (dist * dist * dist);
-            dv   = scale(diff, acc * dt);
-            vs[i] = add(vs[i], dv);
+            dv   = add(dv, scale(diff, GRAV * mass[j] / (dist * dist * dist)));
         }
+        vs[i] = add(vs[i], scale(dv, dt));
     }
 }
 

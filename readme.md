@@ -12,7 +12,8 @@ geometry: margin=2cm
 
 ### Midway Scaling
 This is a weird result. Somehow using hybrid OMP and MPI was slower as I
-increased nodes.  
+increased nodes. This may have to do with how Midway chose to layout the
+actual ranks.
 
 Nodes    Hybrid   MPI-Only
 ------  -------  ---------
@@ -20,3 +21,5 @@ Nodes    Hybrid   MPI-Only
 2        130.46      51.04
 4        146.24      29.54
 8        175.30      18.56
+
+### Vesta
