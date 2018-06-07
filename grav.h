@@ -10,7 +10,9 @@
 #define GRAV 6.67408e-3
 #define SOFTENING 1.0e-4
 #define TIME_STEP 0.2
-#define EXPECTED_SYSTEM_MASS 1.0
+#define EXPECTED_SYSTEM_MASS 10.0
+#define ROTATION 0.04
+#define DISPLACEMENT 0.5
 
 typedef struct { double x, y, z; } vec_t;
 

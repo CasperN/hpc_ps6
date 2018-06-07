@@ -1,16 +1,15 @@
 CC = mpicc
 CFLAGS = -O2 -std=c99 -Wall -fopenmp -DIDENTICAL
 
-N = 128
-T = 10
-TH = -1
+N = 1024
+T = 400
+TH = 1
 
 nbody : main.c grav.o serial.o parallel.o
 	$(CC) $(CFLAGS) main.c grav.o serial.o parallel.o -o nbody
 
 Readme.pdf : readme.md
 	pandoc readme.md -o Readme.pdf
-
 
 clean :
 	rm -f nbody grav.o serial.o parallel.o *.bin
@@ -22,7 +21,7 @@ simulation.mp4 : plotter.py outfile.bin
 	time python3 plotter.py
 
 outfile.bin : nbody
-	mpirun -n 4 ./nbody $N $T $(TH)
+	mpirun -n 8 ./nbody $N $T $(TH)
 
 test : nbody
 	mpirun -n 4 ./nbody $N $T $(TH) "a.bin"

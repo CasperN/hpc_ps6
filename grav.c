@@ -80,21 +80,19 @@ void init_3body(bodies_t *xs){
     int nprocs;
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    // #pragma omp parallel for schedule(static) shared(xs, nprocs)
+    #ifndef IDENTICAL // disallow race conditions over random state in IDENTICAL
+    #pragma omp parallel for schedule(static) shared(xs, nprocs)
+    #endif
     for(int i=0; i<xs->n_par; i++){
-        int r = rand();
+        int r = rand() % 3;
         vec_t cluster;
-
-        // Just a little bit off perfect symmetry
-        if (r % 3 == 0)
-            cluster = (vec_t) {-1 , -sqrt(3), 0.1};
-        else if (r % 3 == 1)
-            cluster = (vec_t) {-1 , +sqrt(3), 0};
-        else
-            cluster = (vec_t) { 2.1, 0, 0};
+        // just a bit off of the radius 2 circle
+        cluster = r == 0 ? (vec_t) {-1 , -sqrt(3), - DISPLACEMENT}
+                : r == 1 ? (vec_t) {-1 , sqrt(3) - DISPLACEMENT, 0}
+                :          (vec_t) { 2.0 -DISPLACEMENT, 0, 0 };
 
         xs->pos[i]  = add(cluster, scale(sample_direction(), rand_unif(0,1)));
-        xs->vel[i]  = scale(rotate_about_z(xs->pos[i]), 0.02);
+        xs->vel[i]  = scale(rotate_about_z(xs->pos[i]), ROTATION);
         xs->mass[i] = rand_unif(0, 2) * EXPECTED_SYSTEM_MASS / xs->n_par / nprocs;
     }
 }

@@ -9,13 +9,17 @@ limit = 3.0
 inputfile = "outfile.bin"
 if len(sys.argv) > 1:
     inputfile = sys.argv[1]
+    ENDIAN = True
 
 
 print("loading input file ", inputfile, " ...")
 f = open(inputfile)
 
 # Reads header info (nBodies, nIters)
-nBodies, timesteps = np.fromfile(f, dtype=np.double, count=2)
+meta = np.fromfile(f, dtype=np.double, count=2)
+if ENDIAN:
+    meta.byteswap(inplace=True)
+nBodies, timesteps = meta
 nBodies = int(nBodies)
 timesteps = int(timesteps)
 
@@ -32,6 +36,8 @@ if nBodies > 100000:
 
 # Reads initial conditions
 arr = np.fromfile(f, dtype=float, count=nBodies * 3).reshape(nBodies, 3)
+if ENDIAN:
+    arr.byteswap(inplace=True)
 
 # Create a 3D plot and initialize it with initial particle states
 fig, ax = plt.subplots()
@@ -52,10 +58,12 @@ ax.set_zticks([])
 # Function that will be called for each frame of the animation
 def update(data):
     update.t += 1
-    if update.t % 10 == 0:
+    if update.t % 25 == 0:
         print("Processing Time Step ", update.t)
     # Reads a set of bodies into an array
     arr = np.fromfile(f, dtype=float, count=nBodies * 3).reshape(nBodies, 3)
+    if ENDIAN:
+        arr.byteswap(inplace=True)
 
     points.set_xdata(arr[:, 0])
     points.set_ydata(arr[:, 1])
