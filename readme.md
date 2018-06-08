@@ -34,7 +34,7 @@ Nodes    Hybrid   MPI-Only
 
 ### Hybrid vs Pure MPI Vesta
 Like in Midway, hybrid parallelism is dramatically slower on my implementation.
-I'm not sure why,
+I'm not sure why.
 
 
 ### Vesta
@@ -57,3 +57,5 @@ particles and quadruples the number of comparisons, 1024 nodes should work fine.
 It turned out that my simulation took over an hour to run so it stopped at
 iteration 395. This breaks the plotter file and you have to hardcode the
 number of time steps to render the final simulation.
+
+https://github.com/CasperN/hpc_ps6/blob/master/final_simulation.mp4
