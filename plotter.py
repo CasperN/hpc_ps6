@@ -5,6 +5,9 @@ import mpl_toolkits.mplot3d.axes3d as p3
 import sys
 
 limit = 3.0
+FPS = 30
+BITRATE = -1
+ENDIAN = False
 
 inputfile = "outfile.bin"
 if len(sys.argv) > 1:
@@ -31,6 +34,8 @@ if nBodies > 10000:
     marker = 0.1
 if nBodies > 100000:
     marker = 0.02
+if nBodies > 1000000:
+    marker = 0.005
 
 # Allocations array to hold a timestep
 
@@ -42,6 +47,7 @@ if ENDIAN:
 # Create a 3D plot and initialize it with initial particle states
 fig, ax = plt.subplots()
 ax = p3.Axes3D(fig)
+ax.elev = 90
 
 # Build Plot
 points, = ax.plot3D(arr[:, 0], arr[:, 1], arr[:, 2], "wo", markersize=marker)
@@ -76,11 +82,12 @@ update.t = -1
 
 # Generate the animation
 ani = animation.FuncAnimation(fig, update, timesteps - 1)
+# ani = animation.FuncAnimation(fig, update, 394)
 
 # Save .mp4 of the animation
 # Bitrate may need to be increased for higher particle counts
 w = animation.writers["ffmpeg"](
-    fps=60, metadata=dict(artist="Me"), bitrate=50000, extra_args=["-s", "1280x1280"]
+    fps=FPS, metadata=dict(artist="Me"), bitrate=BITRATE, extra_args=["-s", "1280x1280"]
 )
 
 ani.save("simulation.mp4", writer=w)

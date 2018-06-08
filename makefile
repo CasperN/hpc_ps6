@@ -2,7 +2,7 @@ CC = mpicc
 CFLAGS = -O2 -std=c99 -Wall -fopenmp -DIDENTICAL
 
 N = 1024
-T = 400
+T = 200
 TH = 1
 
 nbody : main.c grav.o serial.o parallel.o

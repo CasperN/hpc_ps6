@@ -32,6 +32,11 @@ Nodes    Hybrid   MPI-Only
 4        111.63      29.40
 8        139.94      20.23
 
+### Hybrid vs Pure MPI Vesta
+Like in Midway, hybrid parallelism is dramatically slower on my implementation.
+I'm not sure why,
+
+
 ### Vesta
 Scaling tests were run with $2^{19}=524,288$ particles using MPI-Only 64 ranks
 per node. Somewhere between 256 and 512 nodes, the cost of moving the particles
@@ -47,3 +52,8 @@ particles and quadruples the number of comparisons, 1024 nodes should work fine.
    256      58.84                32
    512      48.08                16
   1024      55.42                 8
+
+### Production simulation
+It turned out that my simulation took over an hour to run so it stopped at
+iteration 395. This breaks the plotter file and you have to hardcode the
+number of time steps to render the final simulation.
